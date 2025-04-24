@@ -13,6 +13,7 @@ class QuizCore {
   private questions: QuizQuestion[];
   private currentQuestionIndex: number;
   private score: number;
+  private userAnswers: (string | null)[] = []; // Array to store user's answers
 
   /**
    * Constructor
@@ -23,6 +24,7 @@ class QuizCore {
     this.questions = quizData;
     this.currentQuestionIndex = 0;
     this.score = 0;
+    this.userAnswers = new Array(this.questions.length).fill(null); // Initialize user answers array
   }
 
   /**
@@ -30,11 +32,16 @@ class QuizCore {
    * @returns The current question or null if no questions are available.
    */
   public getCurrentQuestion(): QuizQuestion | null {
-    // Returns the current quiz question.
     if (this.currentQuestionIndex >= 0 && this.currentQuestionIndex < this.questions.length) {
       return this.questions[this.currentQuestionIndex];
     }
     return null;
+  }
+  public previousQuestion(){
+    this.currentQuestionIndex--;
+    if (this.currentQuestionIndex < 0) {
+      this.currentQuestionIndex = 0; 
+    }
   }
 
   /**
@@ -52,13 +59,26 @@ class QuizCore {
   public hasNextQuestion(): boolean {
     return this.currentQuestionIndex < this.questions.length - 1;
   }
+  public hasPreviousQuestion(): boolean {
+    return this.currentQuestionIndex > 0;
+  }
+  public getCurrentQuestionIndex(): number{
+    return this.currentQuestionIndex;
+  }
+  public setCurrentQuestionIndex(index: number): void {
+    if (index >= 0 && index < this.questions.length) {
+      this.currentQuestionIndex = index; 
+    } else {
+      throw new Error("Invalid question index");
+    }
+  }
 
   /**
    * Record the user's answer and update the score.
    * @param answer - The user's answer.
    */
   public answerQuestion(answer: string): void {
-    // Records the user's answer and updates the score if the answer is correct.
+    this.userAnswers[this.currentQuestionIndex] = answer; 
     const currentQuestion = this.getCurrentQuestion();
     if (currentQuestion && answer === currentQuestion.correctAnswer) {
       this.score++;
@@ -70,8 +90,15 @@ class QuizCore {
    * @returns The user's score.
    */
   public getScore(): number {
-    return this.score;
+    return this.questions.reduce((score, question, index) => {
+      const userAnswer = this.userAnswers[index];
+      if (userAnswer === question.correctAnswer) {
+        return score + 1;
+      }
+      return score;
+    }, 0);
   }
+  
 
   /**
    * Get the total number of questions in the quiz.
@@ -80,6 +107,14 @@ class QuizCore {
   public getTotalQuestions(): number {
     return this.questions.length;
   }
+  public getUserAnswer(index: number): string | null {
+    return this.userAnswers[index];
+  }
+  public getUserAnswers(): (string | null)[] {
+    return this.userAnswers;
+  }
+
+
 }
 
 export default QuizCore;
